@@ -1,0 +1,333 @@
+{% extends 'deepfake_app/base.html' %}
+{% block content %}
+
+<style>
+    .upload-container {
+        max-width: 600px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .upload-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="white" opacity="0.1"><animate attributeName="opacity" values="0.1;0.3;0.1" dur="3s" repeatCount="indefinite"/></circle><circle cx="80" cy="30" r="1.5" fill="white" opacity="0.1"><animate attributeName="opacity" values="0.1;0.4;0.1" dur="2s" repeatCount="indefinite"/></circle><circle cx="40" cy="70" r="1" fill="white" opacity="0.1"><animate attributeName="opacity" values="0.1;0.5;0.1" dur="4s" repeatCount="indefinite"/></circle></svg>') repeat;
+        pointer-events: none;
+    }
+
+    .upload-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .upload-title {
+        color: white;
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        background: linear-gradient(45deg, #ffffff, #f0f0f0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .upload-subtitle {
+        color: rgba(255,255,255,0.9);
+        font-size: 1.1rem;
+        font-weight: 300;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    }
+
+    .upload-form {
+        position: relative;
+        z-index: 1;
+    }
+
+    .file-upload-area {
+        position: relative;
+        border: 3px dashed rgba(255,255,255,0.3);
+        border-radius: 15px;
+        padding: 3rem 2rem;
+        text-align: center;
+        background: rgba(255,255,255,0.1);
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        margin-bottom: 2rem;
+    }
+
+    .file-upload-area:hover {
+        border-color: rgba(255,255,255,0.6);
+        background: rgba(255,255,255,0.15);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    .file-upload-area.drag-over {
+        border-color: #4ade80;
+        background: rgba(74, 222, 128, 0.1);
+        transform: scale(1.02);
+    }
+
+    .upload-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1rem;
+        background: linear-gradient(45deg, #4ade80, #22c55e);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+
+    .upload-icon svg {
+        width: 40px;
+        height: 40px;
+        fill: white;
+    }
+
+    .upload-text {
+        color: white;
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    }
+
+    .upload-hint {
+        color: rgba(255,255,255,0.8);
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+
+    .file-input {
+        position: absolute;
+        left: -9999px;
+        opacity: 0;
+    }
+
+    .file-name {
+        background: rgba(255,255,255,0.2);
+        border-radius: 25px;
+        padding: 0.5rem 1rem;
+        color: white;
+        font-size: 0.9rem;
+        display: inline-block;
+        margin-top: 1rem;
+        backdrop-filter: blur(5px);
+    }
+
+    .predict-btn {
+        width: 100%;
+        padding: 1rem 2rem;
+        background: linear-gradient(45deg, #4ade80, #22c55e);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        box-shadow: 0 10px 20px rgba(34, 197, 94, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .predict-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 30px rgba(34, 197, 94, 0.4);
+        background: linear-gradient(45deg, #22c55e, #16a34a);
+    }
+
+    .predict-btn:active {
+        transform: translateY(0);
+    }
+
+    .predict-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .predict-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .predict-btn:hover::before {
+        left: 100%;
+    }
+
+    .loading-spinner {
+        display: none;
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+        margin-right: 0.5rem;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .security-badge {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        color: rgba(255,255,255,0.8);
+        font-size: 0.8rem;
+        margin-top: 1rem;
+        text-align: center;
+    }
+
+    .security-badge svg {
+        width: 16px;
+        height: 16px;
+        fill: #4ade80;
+    }
+
+    @media (max-width: 768px) {
+        .upload-container {
+            margin: 1rem;
+            padding: 1.5rem;
+        }
+        
+        .upload-title {
+            font-size: 2rem;
+        }
+        
+        .file-upload-area {
+            padding: 2rem 1rem;
+        }
+    }
+</style>
+
+<div class="upload-container">
+    <div class="upload-header">
+        <h1 class="upload-title">AI Detection System</h1>
+        <p class="upload-subtitle">Upload an image to detect potential deepfake manipulation</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="upload-form" id="uploadForm">
+        {% csrf_token %}
+        
+        <div class="file-upload-area" id="uploadArea">
+            <div class="upload-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                    <path d="M12,11L16,15H13V19H11V15H8L12,11Z"/>
+                </svg>
+            </div>
+            
+            <div class="upload-text">Drop your image here</div>
+            <div class="upload-hint">or click to browse files</div>
+            <div class="upload-hint">Supports JPG, PNG, WEBP up to 10MB</div>
+            
+            <input type="file" name="image" accept="image/*" class="file-input" id="fileInput" required>
+            <div class="file-name" id="fileName" style="display: none;"></div>
+        </div>
+
+        <button type="submit" class="predict-btn" id="predictBtn" disabled>
+            <div class="loading-spinner" id="loadingSpinner"></div>
+            <span id="btnText">Analyze Image</span>
+        </button>
+
+        <div class="security-badge">
+            <svg viewBox="0 0 24 24">
+                <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M10,17L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/>
+            </svg>
+            <span>Secure • Private • No data stored</span>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const fileName = document.getElementById('fileName');
+    const predictBtn = document.getElementById('predictBtn');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const btnText = document.getElementById('btnText');
+    const uploadForm = document.getElementById('uploadForm');
+
+    // Click to upload
+    uploadArea.addEventListener('click', () => fileInput.click());
+
+    // File selection handler
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            fileName.textContent = file.name;
+            fileName.style.display = 'inline-block';
+            predictBtn.disabled = false;
+        }
+    });
+
+    // Drag and drop handlers
+    uploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        uploadArea.classList.add('drag-over');
+    });
+
+    uploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('drag-over');
+    });
+
+    uploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('drag-over');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            const file = files[0];
+            if (file.type.startsWith('image/')) {
+                fileInput.files = files;
+                fileName.textContent = file.name;
+                fileName.style.display = 'inline-block';
+                predictBtn.disabled = false;
+            }
+        }
+    });
+
+    // Form submission handler
+    uploadForm.addEventListener('submit', function(e) {
+        predictBtn.disabled = true;
+        loadingSpinner.style.display = 'inline-block';
+        btnText.textContent = 'Analyzing...';
+    });
+});
+</script>
+
+{% endblock %}

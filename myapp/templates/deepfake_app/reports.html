@@ -1,0 +1,301 @@
+{% extends 'deepfake_app/base.html' %}
+{% block content %}
+
+<style>
+    .reports-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+    }
+    
+    .page-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        color: white;
+    }
+    
+    .page-title {
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        background: linear-gradient(45deg, #fff, #e0e7ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .page-subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        font-weight: 300;
+    }
+    
+    .reports-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+        gap: 2rem;
+        margin-bottom: 4rem;
+    }
+    
+    .report-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        border: 1px solid rgba(255,255,255,0.2);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .report-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+    }
+    
+    .report-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 30px 60px rgba(0,0,0,0.15);
+    }
+    
+    .svm-card::before {
+        background: linear-gradient(90deg, #4facfe, #00f2fe);
+    }
+    
+    .siglip-card::before {
+        background: linear-gradient(90deg, #fa709a, #fee140);
+    }
+    
+    .report-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        gap: 1rem;
+    }
+    
+    .report-icon {
+        font-size: 2rem;
+        padding: 0.8rem;
+        border-radius: 12px;
+        color: white;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+    }
+    
+    .svm-icon {
+        background: linear-gradient(135deg, #4facfe, #00f2fe);
+    }
+    
+    .siglip-icon {
+        background: linear-gradient(135deg, #fa709a, #fee140);
+    }
+    
+    .report-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2d3748;
+        margin: 0;
+    }
+    
+    .report-content {
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 1.5rem;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        border: 1px solid #e2e8f0;
+        white-space: pre-line;
+        overflow-x: auto;
+        color: #4a5568;
+    }
+    
+    .section-divider {
+        margin: 4rem 0;
+        border: none;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+    }
+    
+    .matrices-section {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 3rem;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .section-title {
+        text-align: center;
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 2.5rem;
+        color: white;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .matrices-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 3rem;
+        justify-items: center;
+    }
+    
+    .matrix-card {
+        text-align: center;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255,255,255,0.3);
+    }
+    
+    .matrix-card:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+    }
+    
+    .matrix-image {
+        max-width: 100%;
+        height: auto;
+        border-radius: 12px;
+        border: 3px solid #e2e8f0;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .matrix-image:hover {
+        transform: scale(1.05);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+    }
+    
+    .matrix-label {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-top: 1.5rem;
+        color: #2d3748;
+        padding: 0.5rem 1rem;
+        background: linear-gradient(135deg, #f7fafc, #edf2f7);
+        border-radius: 8px;
+        display: inline-block;
+    }
+    
+    .floating-elements {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: -1;
+        overflow: hidden;
+    }
+    
+    .floating-element {
+        position: absolute;
+        opacity: 0.1;
+        animation: float 20s infinite linear;
+    }
+    
+    @keyframes float {
+        0% { transform: translateY(100vh) rotate(0deg); }
+        100% { transform: translateY(-100px) rotate(360deg); }
+    }
+    
+    .floating-element:nth-child(1) { left: 10%; animation-delay: 0s; }
+    .floating-element:nth-child(2) { left: 20%; animation-delay: 2s; }
+    .floating-element:nth-child(3) { left: 30%; animation-delay: 4s; }
+    .floating-element:nth-child(4) { left: 40%; animation-delay: 6s; }
+    .floating-element:nth-child(5) { left: 50%; animation-delay: 8s; }
+    .floating-element:nth-child(6) { left: 60%; animation-delay: 10s; }
+    .floating-element:nth-child(7) { left: 70%; animation-delay: 12s; }
+    .floating-element:nth-child(8) { left: 80%; animation-delay: 14s; }
+    .floating-element:nth-child(9) { left: 90%; animation-delay: 16s; }
+    
+    @media (max-width: 768px) {
+        .reports-container {
+            padding: 1rem;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+        }
+        
+        .reports-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        
+        .matrices-grid {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+        
+        .report-card, .matrices-section {
+            padding: 1.5rem;
+        }
+    }
+</style>
+
+<div class="floating-elements">
+    <div class="floating-element">🤖</div>
+    <div class="floating-element">📊</div>
+    <div class="floating-element">🔍</div>
+    <div class="floating-element">🧠</div>
+    <div class="floating-element">📈</div>
+    <div class="floating-element">🎯</div>
+    <div class="floating-element">⚡</div>
+    <div class="floating-element">🔬</div>
+    <div class="floating-element">📸</div>
+</div>
+
+<div class="reports-container">
+    <div class="page-header">
+        <p class="page-title">Advanced AI Model Performance Analysis & Metrics</p>
+    </div>
+
+    <div class="reports-grid">
+        <div class="report-card svm-card">
+            <div class="report-header">
+                <div class="report-icon svm-icon">🎯</div>
+                <h4 class="report-title">Support Vector Machine and CNN Hybrid</h4>
+            </div>
+            <div class="report-content">{{ svm_report|safe }}</div>
+        </div>
+
+        <div class="report-card siglip-card">
+            <div class="report-header">
+                <div class="report-icon siglip-icon">🚀</div>
+                <h4 class="report-title">SigLIP Neural Network</h4>
+            </div>
+            <div class="report-content">{{ siglip_report|safe }}</div>
+        </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <div class="matrices-section">
+        <h3 class="section-title">📊 Confusion Matrix Analysis</h3>
+        <div class="matrices-grid">
+            <div class="matrix-card">
+                <img src="/{{ image2 }}" alt="SVM Confusion Matrix" class="matrix-image">
+                <div class="matrix-label">🎯 SVM+CNN Hybrid Model Results</div>
+            </div>
+            <div class="matrix-card">
+                <img src="/{{ image1 }}" alt="SigLIP Confusion Matrix" class="matrix-image">
+                <div class="matrix-label">🚀 SigLIP Model Results</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

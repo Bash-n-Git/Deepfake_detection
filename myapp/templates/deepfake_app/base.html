@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Deepfake Detector{% endblock %}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-attachment: fixed;
+            color: #333;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Animated background particles */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><circle cx="200" cy="200" r="3" fill="white" opacity="0.1"><animate attributeName="cy" values="200;800;200" dur="20s" repeatCount="indefinite"/></circle><circle cx="800" cy="300" r="2" fill="white" opacity="0.15"><animate attributeName="cy" values="300;700;300" dur="15s" repeatCount="indefinite"/></circle><circle cx="500" cy="500" r="4" fill="white" opacity="0.08"><animate attributeName="cy" values="500;100;500" dur="25s" repeatCount="indefinite"/></circle><circle cx="100" cy="600" r="2.5" fill="white" opacity="0.12"><animate attributeName="cy" values="600;900;600" dur="18s" repeatCount="indefinite"/></circle><circle cx="900" cy="100" r="1.5" fill="white" opacity="0.2"><animate attributeName="cy" values="100;500;100" dur="22s" repeatCount="indefinite"/></circle></svg>') repeat;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        header {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
+            color: white;
+            padding: 0.5rem;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, #fff, #f0f0ff, #e0e0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 300;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            position: relative;
+            z-index: 1;
+        }
+
+        nav {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(15px);
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            position: relative;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            overflow: hidden;
+        }
+
+        nav a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.2));
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        nav a:hover::before {
+            transform: translateX(0);
+        }
+
+        nav a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        nav a.active {
+            background: linear-gradient(45deg, #4ade80, #22c55e);
+            box-shadow: 0 5px 15px rgba(34, 197, 94, 0.4);
+        }
+
+        main {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 2rem auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        main::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            margin-top: 3rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .tech-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(74, 222, 128, 0.2);
+            color: #4ade80;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(74, 222, 128, 0.3);
+        }
+
+        .tech-badge::before {
+            content: '●';
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Loading animation for page transitions */
+        .page-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #4ade80, #22c55e, #16a34a);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            z-index: 9999;
+        }
+
+        .page-loader.loading {
+            animation: loadingBar 2s ease-in-out infinite;
+        }
+
+        @keyframes loadingBar {
+            0% { transform: translateX(-100%); }
+            50% { transform: translateX(0%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            header {
+                padding: 1.5rem 1rem;
+            }
+
+            header h1 {
+                font-size: 2rem;
+            }
+
+            nav {
+                flex-direction: column;
+                gap: 0.5rem;
+                padding: 1rem;
+            }
+
+            nav a {
+                padding: 0.6rem 1rem;
+                font-size: 1rem;
+            }
+
+            main {
+                margin: 1rem;
+                padding: 1.5rem;
+                border-radius: 15px;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .footer-links {
+                justify-content: center;
+            }
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #4ade80, #22c55e);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+    </style>
+</head>
+<body>
+    <div class="page-loader" id="pageLoader"></div>
+
+    <header>
+        <h1>Detection of Deepfake Images and Videos Using SVM, CNN, and Hybrid Approaches</h1>
+    </header>
+
+    <nav>
+        <a href="{% url 'home' %}" class="nav-link">Home</a>
+        <a href="{% url 'upload_svm' %}" class="nav-link">SVM+CNN Hybrid Detection</a>
+        <a href="{% url 'upload_siglip' %}" class="nav-link">SigLIP Analysis</a>
+        <a href="{% url 'reports_view' %}" class="nav-link">Reports</a>
+    </nav>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Active navigation highlighting
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                }
+            });
+
+            // Page loading animation
+            const pageLoader = document.getElementById('pageLoader');
+            
+            // Show loader on page navigation
+            document.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A' && !e.target.href.startsWith('#')) {
+                    pageLoader.classList.add('loading');
+                }
+            });
+
+            // Hide loader when page loads
+            window.addEventListener('load', function() {
+                pageLoader.classList.remove('loading');
+            });
+
+            // Smooth reveal animation for main content
+            const main = document.querySelector('main');
+            main.style.opacity = '0';
+            main.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                main.style.transition = 'all 0.6s ease';
+                main.style.opacity = '1';
+                main.style.transform = 'translateY(0)';
+            }, 100);
+
+            // Add hover effects to nav links
+            navLinks.forEach(link => {
+                link.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                });
+                
+                link.addEventListener('mouseleave', function() {
+                    if (!this.classList.contains('active')) {
+                        this.style.transform = 'translateY(0)';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

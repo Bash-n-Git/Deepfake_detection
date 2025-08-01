@@ -1,0 +1,18 @@
+{% extends 'deepfake_app/base.html' %}
+{% block content %}
+<h2 style="text-align: center; margin-bottom: 1.5rem;">Choose a Model</h2>
+
+<div style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap;">
+    <div style="background: #e6f0ff; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; width: 250px;">
+        <h3 style="margin-top: 0;">CNN + SVM Hybrid</h3>
+        <p style="font-size: 0.95rem;">Uses classical feature extraction with a powerful SVM classifier.</p>
+        <a href="{% url 'upload_svm' %}" style="display: inline-block; margin-top: 1rem; background: #0055aa; color: white; padding: 0.5rem 1rem; border-radius: 5px; text-decoration: none;">Try SVM</a>
+    </div>
+
+    <div style="background: #ffe6e6; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; width: 250px;">
+        <h3 style="margin-top: 0;">SigLIP Transformer(CNN Model)</h3>
+        <p style="font-size: 0.95rem;">Leverages Google’s SigLIP model for deepfake detection using vision transformers.</p>
+        <a href="{% url 'upload_siglip' %}" style="display: inline-block; margin-top: 1rem; background: #cc0000; color: white; padding: 0.5rem 1rem; border-radius: 5px; text-decoration: none;">Try SigLIP</a>
+    </div>
+</div>
+{% endblock %}
